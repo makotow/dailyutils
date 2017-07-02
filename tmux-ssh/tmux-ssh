@@ -1,0 +1,121 @@
+#!/bin/bash
+
+
+VERSION=0.01
+PROGNAME=$(basename $0)
+
+function usage {
+    cat <<EOF
+
+$(basename ${0}) is a tool for tmux bulk command executor.
+
+Usage:
+    $(basename ${0}) [command] [<options>] host1 host2 ...
+    hostXX: ssh connect target hosts
+Command:
+    -u , --user    username default is current user.
+    -i   ssh keys  specified private key file absolute path.
+Options:
+    --version, -v     print $(basename ${0}) version
+    --help, -h        print this
+    --debug, -d       debug mode (set -x)
+EOF
+}
+
+## utiity にあるはずなので入れ替えする。
+# あとで色をつけるechoにする
+# 別ファイルにして読み込むべき？
+
+### utilities
+# function debug() { ((DEBUG)) && yellow ">>> $*"; }
+# function require_cmd() { which -s $1}
+
+NORMAL=$(tput sgr0)
+
+LOG=$(tput sgr0; tput bold)
+GREEN=$(tput setaf 2; tput bold)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+
+function red() {
+    echo "$RED${*}$NORMAL"
+}
+
+function green() {
+    echo "$GREEN${*}$NORMAL"
+}
+
+function yellow() {
+    echo "$YELLOW${*}$NORMAL"
+}
+
+
+## getopt, getopts を使わない理由。
+## 自前でオプション解析をしている理由は
+## サブコマンド後の引数解析ができない、ロングオプションが使用できないため。
+for OPT in "$@"
+do
+    case ${OPT} in
+        '-h' | '--help')
+            usage
+            exit 0
+            ;;
+        '-u' | '--user')
+            if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                red "option require parameters: ssh login username"
+                exit 1
+            fi
+            sshuser="$2"
+            shift 2
+            ;;
+        '-i' )
+            if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+                red "option require parameters: ssh key"
+                exit 1
+            fi
+            sshkey="$2"
+            shift 2
+            ;;
+        '-v'|'--version')
+            green $VERSION
+            exit 0
+            ;;
+        '--debug'|'-d')
+            set -x
+            ;;
+        -*)
+            yellow "$PROGNAME: illegal option -- '$(echo $1 | sed 's/^-*//')'" 1>&2
+            exit 1
+            ;;
+        *)
+            if [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
+                param+=( "$1" )
+                shift 1
+            fi
+            ;;
+    esac
+done
+
+if [ -z $param ]; then
+    echo "$PROGNAME: too few arguments" 1>&2
+    echo "Try '$PROGNAME --help' for more information." 1>&2
+    exit 1
+fi
+
+tmux start-server
+tmux new-session -d -n tmux-ssh-window -s tmux-ssh
+
+tmux send-keys "ssh -i ${sshkey} ${sshuser}@${param[1]}" C-m
+shift
+
+
+for i in ${param}
+do
+    tmux split-window
+    tmux send-keys "ssh -i ${sshkey} ${sshuser}@${i}" C-m
+done
+
+tmux select-layout tiled
+tmux select-pane -t 0
+tmux set-window-option synchronize-panes on
+tmux attach-session -t tmux-ssh

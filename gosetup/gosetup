@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# create best practice folder layout
+dirs=(src pkg bin)
+
+for dir in ${dirs[@]}
+do
+    mkdir -p $(pwd)/$dir
+done
+
+## set environment for direnv
+cat << 'EOF' > $(pwd)/.envrc
+export GOBIN=$(pwd)/bin
+export GOPATH=$(pwd):$GOPATH
+export PATH=$PATH:$GOBIN
+EOF
+
+direnv allow .
