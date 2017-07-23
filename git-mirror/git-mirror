@@ -1,0 +1,87 @@
+#!/bin/bash
+set -Ceu
+
+VERSION=0.01
+PROGNAME=$(basename "$0")
+
+function usage {
+    cat <<EOF
+
+${PROGNAME} is a tool for git mirror shothands utility.
+
+Usage:
+    ${PROGNAME} source_repository destenation_repository
+Options:
+    --version, -v     print ${PROGNAME} version
+    --help, -h        print this
+    --debug, -d       debug mode (set -x)
+EOF
+}
+
+
+
+NORMAL=$(tput sgr0)
+GREEN=$(tput setaf 2; tput bold)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+
+function red() {
+    echo "$RED${*}$NORMAL"
+}
+
+function green() {
+    echo "$GREEN${*}$NORMAL"
+}
+
+function yellow() {
+    echo "$YELLOW${*}$NORMAL"
+}
+
+
+## getopt, getopts を使わない理由。
+## 自前でオプション解析をしている理由は
+## サブコマンド後の引数解析ができない、ロングオプションが使用できないため。
+for OPT in "$@"
+do
+    case ${OPT} in
+        '-h' | '--help')
+            usage
+            exit 0
+            ;;
+        '-v'|'--version')
+            green $VERSION
+            exit 0
+            ;;
+        '--rm' | '-r')
+            #isRemove=true
+            echo "test"
+            shift 1
+            ;;
+        '--debug'|'-d')
+            set -x
+            ;;
+        -*)
+            yellow "$PROGNAME: illegal option -- '$1'" 1>&2
+            exit 1
+            ;;
+        *)
+            if [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
+                params+=( "$1" )
+                shift 1
+            fi
+            ;;
+    esac
+done
+
+if [ ! "${#params[*]}" -eq 2 ]; then
+    yellow "$PROGNAME: too few arguments" 1>&2
+    yellow "Try '$PROGNAME --help' for more information." 1>&2
+    exit 1
+fi
+
+SRCREPO_DIR=srcrepo$$
+git clone --mirror "${params[0]}" "${SRCREPO_DIR}"
+WORKDIR=$(pwd)/"${SRCREPO_DIR}"
+
+cd "${WORKDIR}"
+git push --mirror "${params[1]}"
