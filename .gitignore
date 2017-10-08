@@ -38,3 +38,5 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# IDEA workspace
+.idea/
