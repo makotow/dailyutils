@@ -21,10 +21,10 @@ fi
 
 TEMPLATE_PATH="${1}"
 
-# search tempalte file with peco
+# search template file with peco
 filename=$(find "${TEMPLATE_PATH}" -maxdepth 1 -type f | peco)
 
-# copy  tempalte file to target
+# copy  template file to target
 cp "${filename}" "$(pwd)"
 
 mkdir idea outline images reference
