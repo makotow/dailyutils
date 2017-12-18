@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+mkdir group_vars host_vars
+mkdir -p roles/common/{files,handlers,tasks}
+touch .gitignore
+touch host_vars/localhost group_vars/all
+
+echo "Setup done"
