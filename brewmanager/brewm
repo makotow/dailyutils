@@ -99,7 +99,6 @@ bundleinstall() {
 
 cleanup() {
   brew cleanup
-  brew cask cleanup
   cask_outdated
 }
 
