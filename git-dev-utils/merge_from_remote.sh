@@ -1,10 +1,10 @@
 #!/bin/bash
 
-REMOTE_REPO=${1:upstream}
-REMOTE_BRANCH=${2:master}
+REMOTE_REPO=${1:-upstream}
+REMOTE_BRANCH=${2:-master}
 
-OWN_REPO=${3:origin}
-OWN_BRANCH=${4:master}
+OWN_REPO=${3:-origin}
+OWN_BRANCH=${4:-master}
 
 
 git fetch "${REMOTE_REPO}"
