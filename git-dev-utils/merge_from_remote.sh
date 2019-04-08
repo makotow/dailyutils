@@ -1,10 +1,14 @@
 #!/bin/bash
 
-TOPIC_BRANCH=$1
-git fetch upstream
-git checkout master
-git merge upstream/master
-git push origin master
-git push origin master
-git branch -d ${TOPIC_BRANCH}
-git push -d origin ${TOPIC_BRANCH}
+REMOTE_REPO=${1:upstream}
+REMOTE_BRANCH=${2:master}
+
+OWN_REPO=${3:origin}
+OWN_BRANCH=${4:master}
+
+
+git fetch "${REMOTE_REPO}"
+git checkout "${OWN_BRANCH}"
+git merge "${REMOTE_REPO}"/"${REMOTE_BRANCH}" --no-edit
+
+git push "${OWN_REPO}" "${OWN_BRANCH}"
